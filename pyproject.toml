@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "persosim"
+version = "0.1.0"
+description = "A minimal, reproducible benchmark runtime for lifelong personal-memory agents"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "PersonSim contributors"}]
+dependencies = [
+  "openai>=1.0",
+  "tiktoken>=0.7",
+]
+
+[project.optional-dependencies]
+mem0 = ["mem0ai==2.0.12"]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src", "src.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,26 @@
+# Secrets and local configuration
+configs/api.md
+configs/api.local.md
+.env
+.env.*
+*.pem
+*.key
+
+# Generated artifacts
+outputs/
+stores/
+*.sqlite3
+*.db
+*.log
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Environments, caches, editor files
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
