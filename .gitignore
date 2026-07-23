@@ -24,3 +24,7 @@ venv/
 .idea/
 .vscode/
 .DS_Store
+
+# Local reference documents (not part of the public release)
+README_zh.md
+CITATION.cff
