@@ -140,8 +140,7 @@ python scripts/run_model_axis.py \
 ```
 
 Use `--persona-id <ID>` one or more times with `run_model_axis.py` to run a
-specified subset. See [`data/README.md`](data/README.md) for the role-gating
-rules that apply to both releases.
+specified subset.
 
 ## Add another memory system
 
