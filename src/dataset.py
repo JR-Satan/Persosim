@@ -28,6 +28,11 @@ def load_dataset(path: Path) -> tuple[Persona, ...]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if payload.get("schema_version") == "personsim_runtime_lifeline_aggregate_v1":
         return _load_research_lifeline(path, payload)
+    # Public research projections intentionally contain only ``lifelines``.
+    # They are paired with a sibling evaluator file and omit internal campaign
+    # and provenance metadata from the original aggregate format.
+    if set(payload) == {"lifelines"}:
+        return _load_research_lifeline(path, payload)
     if payload.get("schema_version") != "personsim_public_lifeline_v1":
         raise ValueError("unsupported dataset schema_version")
     personas: list[Persona] = []
@@ -72,11 +77,14 @@ def _load_research_lifeline(path: Path, payload: dict[str, Any]) -> tuple[Person
     The runtime file remains the sole source of user-visible content. The
     sibling evaluator aggregate contributes only post-hoc criterion text.
     """
-    eval_path = path.with_name("20user_eval.json")
+    if not path.name.endswith("_lifeline.json"):
+        raise ValueError("research lifeline filenames must end in _lifeline.json")
+    eval_path = path.with_name(path.name.replace("_lifeline.json", "_eval.json"))
     if not eval_path.is_file():
-        raise ValueError("the released research lifeline requires sibling 20user_eval.json")
+        raise ValueError(f"the released research lifeline requires sibling {eval_path.name}")
     evaluation_payload = json.loads(eval_path.read_text(encoding="utf-8"))
-    if evaluation_payload.get("schema_version") != "personsim_eval_aggregate_v1":
+    evaluation_schema = evaluation_payload.get("schema_version")
+    if evaluation_schema not in (None, "personsim_eval_aggregate_v1"):
         raise ValueError("unexpected research evaluator aggregate schema")
     criteria: dict[tuple[str, str], str] = {}
     for lifeline in evaluation_payload.get("lifelines", []):
@@ -88,7 +96,10 @@ def _load_research_lifeline(path: Path, payload: dict[str, Any]) -> tuple[Person
             if persona_id and task_id and all(propositions):
                 criteria[(persona_id, task_id)] = "\n".join(propositions)
     personas: list[Persona] = []
-    for lifeline in payload.get("lifelines", []):
+    lifelines = payload.get("lifelines", [])
+    if not isinstance(lifelines, list) or not lifelines:
+        raise ValueError("released lifeline must contain at least one persona")
+    for lifeline in lifelines:
         persona_id = str(lifeline.get("persona_id") or "").strip()
         tasks: list[Task] = []
         for raw_task in lifeline.get("tasks", []):
@@ -105,6 +116,6 @@ def _load_research_lifeline(path: Path, payload: dict[str, Any]) -> tuple[Person
         if len(tasks) != 50:
             raise ValueError(f"{persona_id}: released lifeline must contain 50 tasks")
         personas.append(Persona(persona_id, f"PersonSim persona {persona_id}", tuple(tasks)))
-    if len(personas) != 20 or len({persona.persona_id for persona in personas}) != 20:
-        raise ValueError("released lifeline must contain 20 uniquely identified personas")
+    if len(personas) != len({persona.persona_id for persona in personas}):
+        raise ValueError("released lifeline must contain uniquely identified personas")
     return tuple(personas)

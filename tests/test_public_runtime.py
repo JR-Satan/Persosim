@@ -15,6 +15,7 @@ from src.config import load_settings
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_LIFELINE = REPO_ROOT / "data" / "20user_lifeline.json"
+HUNDRED_USER_LIFELINE = REPO_ROOT / "data" / "100user_lifeline.json"
 
 
 class FakeEmbedder:
@@ -38,6 +39,12 @@ class FakeClient:
 def test_released_research_data_is_valid():
     personas = load_dataset(RESEARCH_LIFELINE)
     assert len(personas) == 20
+    assert all(len(persona.tasks) == 50 for persona in personas)
+
+
+def test_clean_hundred_user_projection_is_valid():
+    personas = load_dataset(HUNDRED_USER_LIFELINE)
+    assert len(personas) == 100
     assert all(len(persona.tasks) == 50 for persona in personas)
 
 
