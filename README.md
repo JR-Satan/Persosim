@@ -9,9 +9,10 @@ with two deliberately comparable memory paths:
 - `mem0` — an optional integration of [Mem0](https://github.com/mem0ai/mem0)
   through the same adapter contract, showing how to add another memory system.
 
-The repository includes the released 20-persona, 50-task-per-persona Lifelong
-aggregate plus `persona_instances_5x20.jsonl` metadata (100 instances, five
-balanced families).
+The repository includes released 20-persona and 100-persona Lifelong
+aggregates, each with 50 tasks per persona, plus
+`persona_instances_5x20.jsonl` metadata (100 instances, five balanced
+families).
 
 ## Design constraints
 
@@ -101,6 +102,46 @@ python scripts/run_lifelong.py \
   --evaluator-model deepseek-v4-pro \
   --embedding-model text-embedding-3-small
 ```
+
+## Run the 100-user release
+
+The 100-user release uses the same runtime and role settings as the 20-user
+release. Pass `data/100user_lifeline.json`; its paired
+`data/100user_eval.json` is selected automatically. Each `run_lifelong.py`
+invocation runs exactly one persona's ordered 50-task trajectory.
+
+For example, run all 50 tasks for one 100-user persona:
+
+```bash
+python scripts/run_lifelong.py \
+  --data data/100user_lifeline.json \
+  --run-id release100-cap-002 \
+  --persona-id cap_002 \
+  --memory-system naive_rag \
+  --tested-agent-model deepseek-v4-flash \
+  --user-simulator-model gpt-4o-mini \
+  --evaluator-model deepseek-v4-pro \
+  --embedding-model text-embedding-3-small
+```
+
+To run one model over all 100 personas, use the model-axis launcher without
+`--persona-id`. It schedules one independent sequential trajectory per
+persona; it does not share memory, transcripts, or outputs across users.
+
+```bash
+python scripts/run_model_axis.py \
+  --data data/100user_lifeline.json \
+  --run-id release100-naiverag \
+  --model deepseek-v4-flash \
+  --memory-system naive_rag \
+  --user-simulator-model gpt-4o-mini \
+  --evaluator-model deepseek-v4-pro \
+  --embedding-model text-embedding-3-small
+```
+
+Use `--persona-id <ID>` one or more times with `run_model_axis.py` to run a
+specified subset. See [`data/README.md`](data/README.md) for the role-gating
+rules that apply to both releases.
 
 ## Add another memory system
 
